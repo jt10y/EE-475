@@ -12,50 +12,36 @@ const LaunchRequestHandler = {
             .getResponse();
     }
 };
-const InProgressFeedingDemoIntentHandler = {
+
+const DriveIntentHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'FeedingDemoIntent'
-            && Alexa.getDialogState(handlerInput.requestEnvelope) !== 'COMPLETED';
+            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'DriveIntent';
     },
     handle(handlerInput) {
         const currentIntent = Alexa.getIntentName(handlerInput.requestEnvelope);
 
-        const speakOutput = 'Say it one more time.';
-        const foodItem = Alexa.getSlotValue(handlerInput.requestEnvelope, 'FOOD_ITEMS');
+        const speakOutput = 'Got it';
+        const action = Alexa.getSlotValue(handlerInput.requestEnvelope, 'ACTION');
 
-        console.log('food: %s', foodItem);
-
-        return handlerInput.responseBuilder
-            .addDelegateDirective(currentIntent)
-            .reprompt(speakOutput)
-            .speak(speakOutput)
-            .getResponse();
-    }
-};
-const CompletedFeedingDemoIntentHandler = {
-    canHandle(handlerInput) {
-        return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && Alexa.getIntentName(handlerInput.requestEnvelope) === 'FeedingDemoIntent'
-            && Alexa.getDialogState(handlerInput.requestEnvelope) === 'COMPLETED';
-    },
-    handle(handlerInput) {
-        var speakOutput;
-        const foodItem = Alexa.getSlotValue(handlerInput.requestEnvelope, 'FOOD_ITEMS');
-        // publish message to ROS
-        msg_topic.advertise();
-        var str = new ROSLIB.Message({
-            data : foodItem
-        });
-        msg_topic.publish(str);
-
-        console.log('food: %s', foodItem);
+        console.log('Action: %s', action);
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
             .getResponse();
     }
+
+/*
+    // publish message to ROS
+    msg_topic.advertise();
+    var str = new ROSLIB.Message({
+        data : foodItem
+    });
+    msg_topic.publish(str);
+    console.log('food: %s', foodItem);
+*/
 };
+
 const HelpIntentHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
@@ -70,6 +56,7 @@ const HelpIntentHandler = {
             .getResponse();
     }
 };
+
 const CancelAndStopIntentHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
@@ -83,6 +70,7 @@ const CancelAndStopIntentHandler = {
             .getResponse();
     }
 };
+
 const SessionEndedRequestHandler = {
     canHandle(handlerInput) {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'SessionEndedRequest';
@@ -134,11 +122,10 @@ const ErrorHandler = {
 // payloads to the handlers above. Make sure any new handlers or interceptors you've
 // defined are included below. The order matters - they're processed top to bottom.
 exports.handler = Alexa.SkillBuilders.custom()
-    // .withSkillId("amzn1.ask.skill.de2d670d-76ee-4fe1-bd41-01bc896c0cb3")
+    .withSkillId("amzn1.ask.skill.64e340fa-24a2-45c5-b132-7da700470c05")
     .addRequestHandlers(
         LaunchRequestHandler,
-        InProgressFeedingDemoIntentHandler,
-        CompletedFeedingDemoIntentHandler,
+        DriveIntentHandler,
         HelpIntentHandler,
         CancelAndStopIntentHandler,
         SessionEndedRequestHandler,
@@ -150,6 +137,8 @@ exports.handler = Alexa.SkillBuilders.custom()
     .lambda();
 
 
+
+/*
 // Connecting to ROS
 var ROSLIB = require('roslib');
 
@@ -175,3 +164,4 @@ var msg_topic = new ROSLIB.Topic({
     name: '/alexa_msgs', 
     messageType: 'std_msgs/String'
 });
+*/

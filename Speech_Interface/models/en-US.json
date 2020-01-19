@@ -1,8 +1,12 @@
 {
     "interactionModel": {
         "languageModel": {
-            "invocationName": "the robot",
+            "invocationName": "smart wheelchair",
             "intents": [
+                {
+                    "name": "AMAZON.FallbackIntent",
+                    "samples": []
+                },
                 {
                     "name": "AMAZON.CancelIntent",
                     "samples": []
@@ -16,215 +20,49 @@
                     "samples": []
                 },
                 {
-                    "name": "FeedingDemoIntent",
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "DriveIntent",
                     "slots": [
-                        {
-                            "name": "FOOD_ITEMS",
-                            "type": "FOOD_ITEMS",
-                            "samples": [
-                                "{FOOD_ITEMS}"
-                            ]
-                        },
                         {
                             "name": "ACTION",
                             "type": "ACTION"
-                        },
-                        {
-                            "name": "SearchQuery",
-                            "type": "AMAZON.SearchQuery"
                         }
                     ],
                     "samples": [
-                        "to give me {SearchQuery}",
-                        "to give me {FOOD_ITEMS}",
-                        "to get {FOOD_ITEMS}",
-                        "to pickup {FOOD_ITEMS}",
-                        "to {ACTION}",
-                        "i need {FOOD_ITEMS}",
-                        "i want {FOOD_ITEMS}",
-                        "feed me {FOOD_ITEMS}",
-                        "i want to eat",
-                        "i want food"
+                        "to drive {ACTION}"
                     ]
-                },
-                {
-                    "name": "AMAZON.NavigateHomeIntent",
-                    "samples": []
                 }
             ],
             "types": [
                 {
-                    "name": "FOOD_ITEMS",
-                    "values": [
-                        {
-                            "name": {
-                                "value": "banana"
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "vegetables"
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "potatoes"
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "green beans"
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "tomatoes"
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "cabbage"
-                            }
-                        },
-                        {
-                            "name": {
-                                "value": "tomato"
-                            }
-                        },
-                        {
-                            "id": "3",
-                            "name": {
-                                "value": "celery"
-                            }
-                        },
-                        {
-                            "id": "2",
-                            "name": {
-                                "value": "cantaloupe"
-                            }
-                        },
-                        {
-                            "id": "1",
-                            "name": {
-                                "value": "strawberry"
-                            }
-                        },
-                        {
-                            "id": "4",
-                            "name": {
-                                "value": "carrot"
-                            }
-                        }
-                    ]
-                },
-                {
                     "name": "ACTION",
                     "values": [
                         {
-                            "id": "0",
                             "name": {
-                                "value": "stop"
+                                "value": "Right"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Left"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Backward"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "Forward"
                             }
                         }
                     ]
                 }
             ]
-        },
-        "dialog": {
-            "intents": [
-                {
-                    "name": "FeedingDemoIntent",
-                    "delegationStrategy": "ALWAYS",
-                    "confirmationRequired": false,
-                    "prompts": {},
-                    "slots": [
-                        {
-                            "name": "FOOD_ITEMS",
-                            "type": "FOOD_ITEMS",
-                            "confirmationRequired": true,
-                            "elicitationRequired": true,
-                            "prompts": {
-                                "confirmation": "Confirm.Slot.1060365625424.692906494560",
-                                "elicitation": "Elicit.Slot.1219692999379.1473990053438"
-                            },
-                            "validations": [
-                                {
-                                    "type": "isInSet",
-                                    "prompt": "Slot.Validation.529789871216.604075709882.1389953832800",
-                                    "values": [
-                                        "celery",
-                                        "carrot",
-                                        "cantaloupe",
-                                        "strawberry"
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "name": "ACTION",
-                            "type": "ACTION",
-                            "confirmationRequired": false,
-                            "elicitationRequired": false,
-                            "prompts": {}
-                        },
-                        {
-                            "name": "SearchQuery",
-                            "type": "AMAZON.SearchQuery",
-                            "confirmationRequired": false,
-                            "elicitationRequired": false,
-                            "prompts": {}
-                        }
-                    ]
-                }
-            ],
-            "delegationStrategy": "ALWAYS"
-        },
-        "prompts": [
-            {
-                "id": "Confirm.Intent.797659454796",
-                "variations": [
-                    {
-                        "type": "PlainText",
-                        "value": "Just want to confirm, did you say {FOOD_ITEMS} ?"
-                    }
-                ]
-            },
-            {
-                "id": "Confirm.Slot.1060365625424.692906494560",
-                "variations": [
-                    {
-                        "type": "PlainText",
-                        "value": "Just want to confirm, did you say {FOOD_ITEMS} ?"
-                    }
-                ]
-            },
-            {
-                "id": "Elicit.Slot.1219692999379.1473990053438",
-                "variations": [
-                    {
-                        "type": "PlainText",
-                        "value": "Please specify a food item."
-                    }
-                ]
-            },
-            {
-                "id": "Slot.Validation.529789871216.604075709882.1389953832800",
-                "variations": [
-                    {
-                        "type": "PlainText",
-                        "value": "I am not designed for it. Mind saying an item I know?"
-                    }
-                ]
-            },
-            {
-                "id": "Slot.Validation.789674083107.1287567164854.1132187682712",
-                "variations": [
-                    {
-                        "type": "PlainText",
-                        "value": "I am not trained to do it."
-                    }
-                ]
-            }
-        ]
+        }
     }
 }
