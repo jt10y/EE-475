@@ -1,7 +1,7 @@
 {
     "interactionModel": {
         "languageModel": {
-            "invocationName": "smart wheelchair",
+            "invocationName": "smart device",
             "intents": [
                 {
                     "name": "AMAZON.FallbackIntent",
@@ -32,6 +32,7 @@
                         }
                     ],
                     "samples": [
+                        "to turn {ACTION}",
                         "to drive {ACTION}"
                     ]
                 }
