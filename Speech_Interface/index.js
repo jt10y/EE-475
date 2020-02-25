@@ -24,22 +24,19 @@ const DriveIntentHandler = {
         const speakOutput = 'Got it';
         const action = Alexa.getSlotValue(handlerInput.requestEnvelope, 'ACTION');
 
+        // publish message to ROS
+        msg_topic.advertise();
+        var str = new ROSLIB.Message({
+            data : action
+        });
+        msg_topic.publish(str);
+
         console.log('Action: %s', action);
 
         return handlerInput.responseBuilder
             .speak(speakOutput)
             .getResponse();
     }
-
-/*
-    // publish message to ROS
-    msg_topic.advertise();
-    var str = new ROSLIB.Message({
-        data : foodItem
-    });
-    msg_topic.publish(str);
-    console.log('food: %s', foodItem);
-*/
 };
 
 const HelpIntentHandler = {
@@ -136,9 +133,6 @@ exports.handler = Alexa.SkillBuilders.custom()
         )
     .lambda();
 
-
-
-/*
 // Connecting to ROS
 var ROSLIB = require('roslib');
 
@@ -159,9 +153,10 @@ ros.on('close', function() {
     console.log('publish-example: Connection to websocket server closed.');
 });
 
+
 var msg_topic = new ROSLIB.Topic({
     ros: ros, 
     name: '/alexa_msgs', 
     messageType: 'std_msgs/String'
 });
-*/
+

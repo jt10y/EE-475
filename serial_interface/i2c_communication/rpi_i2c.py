@@ -12,8 +12,8 @@ import time
 bus = smbus.SMBus(1)
 
 # This is the address we setup in the Arduino Program
-#Slave Address 1
-address = 0x29
+#Slave Address 0x10
+address = 0x10
 
 
 def writeNumber(value):
@@ -25,20 +25,20 @@ def readNumber():
     # number = bus.read_byte(address)
     number = bus.read_byte_data(address, 1)
     return number
-    
+
 while True:
-	#Receives the data from the User
-    # data = raw_input("Enter the data to be sent : ")
-    # data_list = list(data)
-    #for i in data_list:
-    	#Sends to the Slaves 
-     #   writeNumber(int(ord(i)))
-     #   time.sleep(.1)
+    #Receives the data from the User
+    data = raw_input("Enter the data to be sent : ")
+    data_list = list(data)
+    for i in data_list:
+    	#Sends to the Slaves
+   	writeNumber(int(ord(i)))
+    	time.sleep(.1)
 
-    # writeNumber(int(0x0A))
+    writeNumber(int(0x10))
 
-    data = readNumber()
-    print data
+    #data = readNumber()
+    #print data
 
 #End of the Script
 
