@@ -62,11 +62,13 @@ ADC_HandleTypeDef hadc2;
 DAC_HandleTypeDef hdac;
 
 I2C_HandleTypeDef hi2c1;
+I2C_HandleTypeDef hi2c3;
 
 TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim4;
 
 UART_HandleTypeDef huart2;
+UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
 static uint16_t ADC_1, ADC_2; // ADC values
@@ -74,6 +76,7 @@ static uint16_t PWM_1, PWM_2; // PWM values (range 0 - 99)
 static GPIO_PinState
     BRIDGE_PIN_1_State, BRIDGE_PIN_2_State, BRIDGE_PIN_3_State, BRIDGE_PIN_4_State;
 static ESTOP_State Estop;
+GPIO_PinState button_state;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -84,8 +87,10 @@ static void MX_USART2_UART_Init(void);
 static void MX_ADC2_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_DAC_Init(void);
+static void MX_I2C3_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_TIM4_Init(void);
+static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
 static void Blink(void);
 static uint16_t ADC_Read(ADC_HandleTypeDef*);
@@ -101,6 +106,7 @@ static void counterclockwise(void);
 /* USER CODE BEGIN 0 */
 // FOR DEBUGGING
 int CASE;
+bool voice = false;
 /* USER CODE END 0 */
 
 /**
@@ -110,11 +116,14 @@ int CASE;
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  char msg_1[30]; // for message1
-  char msg_2[30]; // for message2
-  char msg_3[30]; // for message3
+  //char msg_1[30]; // for message1
+  //char msg_2[30]; // for message2
+  //char msg_3[30]; // for message3
+  //uint8_t msg_4[30]; // for message4
+  uint8_t cmd[1]; // UART receive cmd
+
+  //bool voice = false;
   /* USER CODE END 1 */
-  
 
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -139,13 +148,13 @@ int main(void)
   MX_ADC2_Init();
   MX_I2C1_Init();
   MX_DAC_Init();
+  MX_I2C3_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
+  MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
- 
- 
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
@@ -154,21 +163,79 @@ int main(void)
   HAL_TIM_PWM_Start (&htim4, TIM_CHANNEL_2);
   while (1)
   {
-    // Read ADC value
-    ADC_1 = ADC_Read(&hadc1);
-    ADC_2 = ADC_Read(&hadc2);
+    // Determine driving mode
+    button_state = HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_8);
+    if (button_state == GPIO_PIN_SET)
+    {
+      voice = !voice;
+    }
+//     I2C slave receive
+//    HAL_I2C_Slave_Receive (&hi2c3, msg_4, 1, HAL_MAX_DELAY);
 
-    // Motor controlling logics
-    driving();
+    if (!voice)
+    {
+      // Read ADC value
+      ADC_1 = ADC_Read(&hadc1);
+      ADC_2 = ADC_Read(&hadc2);
+
+      // Motor controlling logics
+      driving();
+      HAL_Delay(100);
+    }
+    else
+    {
+      HAL_UART_Receive (&huart3, (uint8_t*)cmd, 1, HAL_MAX_DELAY); // receiving message from pi
+      if (cmd[0] =='f')
+      {
+        forward();
+      }
+      else if (cmd[0] == 'b')
+      {
+        backward();
+      }
+      else if (cmd[0] == 'l')
+      {
+        counterclockwise();
+      }
+      else if (cmd[0] == 'r')
+      {
+        clockwise();
+      }
+      else
+      {
+        stop();
+      }
+      PWM_1 = 25;
+      PWM_2 = 25;
+      // updating GPIO value
+      HAL_GPIO_WritePin(BRIDGE_GPIO, BRIDGE_PIN_1, BRIDGE_PIN_1_State);
+      HAL_GPIO_WritePin(BRIDGE_GPIO, BRIDGE_PIN_2, BRIDGE_PIN_2_State);
+      HAL_GPIO_WritePin(BRIDGE_GPIO, BRIDGE_PIN_3, BRIDGE_PIN_3_State);
+      HAL_GPIO_WritePin(BRIDGE_GPIO, BRIDGE_PIN_4, BRIDGE_PIN_4_State);
+      // updating PWM value
+      __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, PWM_1);
+      __HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, PWM_2);
+    }
+
 
     // UART transmit debugging messages
-    sprintf(msg_1, "ADC1 = %hu, ADC2 = %hu\r\n", ADC_1, ADC_2);
-    sprintf(msg_2, "PWM1 = %hu, PWM2 = %hu\r\n", PWM_1, PWM_2);
-    sprintf(msg_3, "CASE = %d\r\n\r\n", CASE);
-    HAL_UART_Transmit(&huart2, (uint8_t*)msg_1, strlen(msg_1), HAL_MAX_DELAY);
-    HAL_UART_Transmit(&huart2, (uint8_t*)msg_2, strlen(msg_2), HAL_MAX_DELAY);
-    HAL_UART_Transmit(&huart2, (uint8_t*)msg_3, strlen(msg_3), HAL_MAX_DELAY);
-    HAL_Delay(10);
+    //sprintf(msg_1, "ADC1 = %hu, ADC2 = %hu\r\n", ADC_1, ADC_2);
+    //sprintf(msg_2, "PWM1 = %hu, PWM2 = %hu\r\n", PWM_1, PWM_2);
+    //sprintf(msg_3, "CASE = %d\r\n\r\n", CASE);
+    //HAL_UART_Transmit(&huart2, (uint8_t*)msg_1, strlen(msg_1), HAL_MAX_DELAY);
+    //HAL_UART_Transmit(&huart2, (uint8_t*)msg_2, strlen(msg_2), HAL_MAX_DELAY);
+    //HAL_UART_Transmit(&huart2, (uint8_t*)msg_3, strlen(msg_3), HAL_MAX_DELAY);
+    //HAL_UART_Transmit(&huart2, (uint8_t*)msg_4, strlen(msg_4), HAL_MAX_DELAY);
+    //HAL_UART_Receive (&huart3, (uint8_t*)msg_5, 1, HAL_MAX_DELAY); // receiving message from pi
+    //HAL_UART_Receive (&huart2, (uint8_t*)msg_5, 4, 1); // bluetooth debugging
+    //printf("%s\r\n", msg_5);
+    //HAL_UART_Transmit(&huart2, (uint8_t*)msg_5, 4, 1); // bluetooth debugging
+
+    // I2C transmit debugging messages
+    // HAL_I2C_Slave_Transmit (&hi2c3, (uint8_t*)msg_1, strlen(msg_1), HAL_MAX_DELAY);
+
+    // Delay
+    //HAL_Delay(100);
 
     /* USER CODE END WHILE */
 
@@ -399,6 +466,40 @@ static void MX_I2C1_Init(void)
 }
 
 /**
+  * @brief I2C3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C3_Init(void)
+{
+
+  /* USER CODE BEGIN I2C3_Init 0 */
+
+  /* USER CODE END I2C3_Init 0 */
+
+  /* USER CODE BEGIN I2C3_Init 1 */
+
+  /* USER CODE END I2C3_Init 1 */
+  hi2c3.Instance = I2C3;
+  hi2c3.Init.ClockSpeed = 400000;
+  hi2c3.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c3.Init.OwnAddress1 = 32;
+  hi2c3.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c3.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c3.Init.OwnAddress2 = 0;
+  hi2c3.Init.GeneralCallMode = I2C_GENERALCALL_ENABLE;
+  hi2c3.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C3_Init 2 */
+
+  /* USER CODE END I2C3_Init 2 */
+
+}
+
+/**
   * @brief TIM3 Initialization Function
   * @param None
   * @retval None
@@ -532,7 +633,7 @@ static void MX_USART2_UART_Init(void)
 
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
+  huart2.Init.BaudRate = 9600;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
@@ -546,6 +647,39 @@ static void MX_USART2_UART_Init(void)
   /* USER CODE BEGIN USART2_Init 2 */
 
   /* USER CODE END USART2_Init 2 */
+
+}
+
+/**
+  * @brief USART3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART3_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART3_Init 0 */
+
+  /* USER CODE END USART3_Init 0 */
+
+  /* USER CODE BEGIN USART3_Init 1 */
+
+  /* USER CODE END USART3_Init 1 */
+  huart3.Instance = USART3;
+  huart3.Init.BaudRate = 115200;
+  huart3.Init.WordLength = UART_WORDLENGTH_8B;
+  huart3.Init.StopBits = UART_STOPBITS_1;
+  huart3.Init.Parity = UART_PARITY_NONE;
+  huart3.Init.Mode = UART_MODE_TX_RX;
+  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART3_Init 2 */
+
+  /* USER CODE END USART3_Init 2 */
 
 }
 
@@ -617,6 +751,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PE8 */
+  GPIO_InitStruct.Pin = GPIO_PIN_8;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pin : CLK_IN_Pin */
   GPIO_InitStruct.Pin = CLK_IN_Pin;

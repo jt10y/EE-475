@@ -32,7 +32,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdbool.h>
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -42,6 +42,7 @@ typedef enum
   ESTOP_RESET = 0,
   ESTOP_SET
 } ESTOP_State;
+extern bool voice;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
