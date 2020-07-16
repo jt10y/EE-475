@@ -73,15 +73,20 @@ uint16_t distance;
 uint32_t read(void){
 	uint32_t local_time = 0;
 
-	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_SET); // pull the trig pin high
-	HAL_Delay(10);		 // wait for 10 secs
-	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_RESET); // pull the trig pin low
+	// pull the trig pin high
+	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_SET); 	
+	
+	// wait for 10 secs
+	HAL_Delay(10);	
+	
+	// pull the trig pin low
+	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_10, GPIO_PIN_RESET); 	
 
 	// wait for the echo pin to go high
-	while(!(HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_11)));
+	while(!(HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_11)));		
 
 	// while the echo pin is high
-	while(HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_11)){
+	while(HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_11)){		
 		local_time++; // increment the time
 		DWT_Delay(1); // every 1 microsecond
 	}
@@ -134,22 +139,16 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	//HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
-	//HAL_Delay(500);
     /* USER CODE END WHILE */
     MX_USB_HOST_Process();
 
     /* USER CODE BEGIN 3 */
-
     sensor_time = read();
+	  
+    // calculate distance using data input from the sensors
     distance = sensor_time * .034/2;
 
-    // if the object is (30cm or less) away from the device then the orange LED blinks
-    /*if (distance <= 30 || distance <= 0){
-    	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
-      } else {
-    	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_RESET);
-      }*/
+    // if the object is less than 20cm away from the prototype then the orange LED blinks
     if (distance < 20){
     	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
        }else{
